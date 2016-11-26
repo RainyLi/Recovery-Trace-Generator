@@ -1,7 +1,8 @@
-#need to add check file whether exists part
 #need to check the correctness
-#file shoud not be limited by prime, error_disk(heritage name from original file)
 #did not consider when dictionary_priority==0, might not necessary but better to be complete
+
+#it is actually FBF_over_LRU
+#might add FBF_over_FIFO, FBF_over_LFU, FBF_over_ARC etc.
 import os
 import sys
 

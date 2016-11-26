@@ -11,8 +11,8 @@ def star_IO_Generator(prime, error_disk):
 		error_block_position=(i,error_disk)
 	
 		#randomly picking the decoding method: 0==horizontal 1==diagnol 2==anti-diagnol
-		#recovery_method=random.randint(0,2)
-		recovery_method=2
+		recovery_method=random.randint(0,2)
+		#recovery_method=2
 
 		#0---horizontal decoding
 		if recovery_method==0:

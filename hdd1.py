@@ -10,7 +10,7 @@ def hdd1_IO_Generator(prime, error_disk):
     recovery_sequence = []
     for i in range(prime - 1):
         # the position of the block to be recovered
-        error_block_position = hdd1_position(i, error_disk, prime)
+        error_block_position = hdd1_cal((i, error_disk))
 
         # randomly picking the decoding method: 0==horizontal 1==anti-diagnol 2==diagnol
 
@@ -40,17 +40,19 @@ def hdd1_IO_Generator(prime, error_disk):
 
 
 def hdd1_method0(position, p):
-    (x, y) = hdd1_xy_decoder(position, p)
+    x=position[0]
+    y=position[1]
     sequence = []
     for j in range(0, p):
         if j != y:
-            block_position = hdd1_position(x, j, p)
+            block_position = hdd1_raid((x, j))
             sequence.append(block_position)
     return set(sequence)
 
 
 def hdd1_method1(position, p):
-    (x, y) = hdd1_xy_decoder(position, p)
+    x = position[0]
+    y = position[1]
     sequence = []
 
     # the data block on strip
@@ -58,18 +60,19 @@ def hdd1_method1(position, p):
 
     for i in range(p-2) :
         if (p-3-i)%p !=x:
-            block_position=hdd1_position((p-3-i)%p, (i+j+1)%p, p)
+            block_position=hdd1_raid(((p-3-i)%p, (i+j+1)%p))
             sequence.append(block_position)
 
     # the parity block on strip
     if x!=p-2:
-        block_position = hdd1_position(p-2, j, p)
+        block_position = hdd1_raid((p-2, j))
         sequence.append(block_position)
     return set(sequence)
 
 
 def hdd1_method2(position, p):
-    (x, y) = hdd1_xy_decoder(position, p)
+    x = position[0]
+    y = position[1]
     sequence = []
 
     if x==2:
@@ -79,24 +82,16 @@ def hdd1_method2(position, p):
     j=(y-x)%p
     for i in range(p-1):
         if i!=x:
-            block_position=hdd1_position(i, (i+j)%p, p)
+            block_position=hdd1_raid((i, (i+j)%p))
             sequence.append(block_position)
 
     # the parity block on the strip
-    block_position = hdd1_position(j, p, p)
+    block_position = hdd1_raid((j, p))
     sequence.append(block_position)
     return set(sequence)
 
+def hdd1_raid(position):
+    return position
 
-def hdd1_position(x, y, p):
-    return x * (p + 1) + y
-
-
-def hdd1_xy_decoder(position, p):
-    """
-    given position, returns the x, y of this position
-    for eazier computation
-    """
-    x = int(position / (p + 1))
-    y = position % (p + 1)
-    return (x, y)
+def hdd1_cal(position):
+    return position

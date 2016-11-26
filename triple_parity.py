@@ -6,7 +6,7 @@ def triple_parity_IO_Generator(prime, error_disk):
     recovery_sequence = []
     for i in range(prime - 1):
         # the position of the block to be recovered
-        error_block_position = triple_parity_position(i, error_disk, prime)
+        error_block_position = triple_parity_cal((i, error_disk))
 
         # randomly picking the decoding method: 0==horizontal 1==diagnol 2==anti-diagnol
         recovery_method = random.randint(0, 2)
@@ -27,17 +27,19 @@ def triple_parity_IO_Generator(prime, error_disk):
 
 
 def triple_parity_method0(position, p):
-    (x, y) = triple_parity_xy_decoder(position, p)
+    x=position[0]
+    y=position[1]
     sequence = []
     for j in range(0, p):
         if j != y:
-            block_position = triple_parity_position(x, j, p)
+            block_position = triple_parity_raid((x, j))
             sequence.append(block_position)
     return set(sequence)
 
 
 def triple_parity_method1(position, p):
-    (x, y) = triple_parity_xy_decoder(position, p)
+    x = position[0]
+    y = position[1]
     sequence = []
 
     i=(x+y)%p
@@ -45,19 +47,20 @@ def triple_parity_method1(position, p):
     #blocks on the stripe
     for j in range(p):
         if j!=y and (i-j)%p< p-1:
-            block_position=triple_parity_position((i-j)%p,j, p)
+            block_position=triple_parity_raid(((i-j)%p,j))
             sequence.append(block_position)
 
 
     #block on diagnal parity
     if i<p-1:
-        block_position = triple_parity_position(i, p, p)
+        block_position = triple_parity_raid((i, p))
         sequence.append(block_position)
     return set(sequence)
 
 
 def triple_parity_method2(position, p):
-    (x, y) = triple_parity_xy_decoder(position, p)
+    x = position[0]
+    y = position[1]
     sequence = []
 
     i = (x - y) % p
@@ -65,21 +68,22 @@ def triple_parity_method2(position, p):
     # blocks on the stripe
     for j in range(p):
         if j != y and (i+j)%p < p-1:
-            block_position = triple_parity_position((i + j) % p, j, p)
+            block_position = triple_parity_raid(((i + j) % p, j))
             sequence.append(block_position)
 
     # block on diagnal parity
     if i< p-1:
-        block_position = triple_parity_position(i, p+1, p)
+        block_position = triple_parity_raid((i, p+1))
         sequence.append(block_position)
     return set(sequence)
 
 
-def triple_parity_position(x, y, p):
-    return x * (p + 2) + y
+def triple_parity_raid(position):
+    #position of cal->raid
+    #no diff between raid and cal
+    return position
 
 
-def triple_parity_xy_decoder(position, p):
-    x = int(position / (p + 2))
-    y = position % (p + 2)
-    return (x, y)
+def triple_parity_cal(position):
+    # position of raid->cal
+    return position
