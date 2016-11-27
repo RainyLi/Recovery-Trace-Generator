@@ -7,6 +7,8 @@ import sys
 def FIFO_cache_trace(parameter_prefix, dir_path, cache_size):
     #start-useless end-important
     list = []
+    request_count=0
+    hit_count=0
     cache_space = cache_size
     f_origin_name = parameter_prefix+"_origin.trace"
     f_filtered_name = parameter_prefix+ "_cache=" + str(cache_size) + "_FIFO.trace"
@@ -25,14 +27,16 @@ def FIFO_cache_trace(parameter_prefix, dir_path, cache_size):
 
     # generate trace for disks
     for line in f_origin.readlines():
-        line_info = line.split()
+        request_count=request_count+1
 
+        line_info = line.split()
         device_number = line_info[1]
         block_number = line_info[2]
         block_position = (device_number, block_number)
 
         if block_position in list:
             #if found in cache, no action.
+            hit_count=hit_count+1
             continue
         elif cache_space > 0:
             cache_space = cache_space - 1
@@ -45,3 +49,4 @@ def FIFO_cache_trace(parameter_prefix, dir_path, cache_size):
 
     f_origin.close()
     f_filtered.close()
+    return hit_count/request_count

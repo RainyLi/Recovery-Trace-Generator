@@ -5,6 +5,10 @@ import sys
 def LRU_cache_trace(parameter_prefix, dir_path, cache_size):
     list = []
 
+    #calculate cache ratio
+    request_count=0
+    hit_count=0
+
     cache_space = cache_size
     f_origin_name = parameter_prefix+"_origin.trace"
     f_filtered_name = parameter_prefix+ "_cache=" + str(cache_size) + "_LRU.trace"
@@ -23,17 +27,21 @@ def LRU_cache_trace(parameter_prefix, dir_path, cache_size):
 
     # generate trace for disks
     for line in f_origin.readlines():
-        line_info = line.split()
+        request_count = request_count + 1
 
+        line_info = line.split()
         device_number = line_info[1]
         block_number = line_info[2]
         block_position = (device_number, block_number)
 
         if block_position in list:
+            hit_count=hit_count+1
+            #print (str(block_position)+"\n")
             index = list.index(block_position)
             list.pop(index)
             list.append(block_position)
             continue
+
         elif cache_space > 0:
             cache_space = cache_space - 1
         else:
@@ -45,3 +53,5 @@ def LRU_cache_trace(parameter_prefix, dir_path, cache_size):
 
     f_origin.close()
     f_filtered.close()
+
+    return hit_count/request_count

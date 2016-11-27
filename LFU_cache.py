@@ -1,9 +1,16 @@
 import os
 import sys
 
+#those blocks being referenced for 2/3 times will take up the cache
+
 def LFU_cache_trace(parameter_prefix, dir_path, cache_size):
     #start-important, end-useless
     list = []
+    request_count=0
+    hit_count=0
+
+    # set frequency_dictionary along with cache
+    dic = {}
 
     cache_space = cache_size
     f_origin_name = parameter_prefix+"_origin.trace"
@@ -33,21 +40,20 @@ def LFU_cache_trace(parameter_prefix, dir_path, cache_size):
 
     f_filtered = open(dir_path+f_filtered_name, 'w')
 
-    # set frequency_dictionary along with cache
-    dic = {}
 
     # generate trace for disks
     for line in f_origin.readlines():
-        line_info = line.split()
+        request_count=request_count+1
 
+        line_info = line.split()
         device_number = line_info[1]
         block_number = line_info[2]
         block_position = (device_number, block_number)
 
         if block_position in list:
+            hit_count=hit_count+1
             index = list.index(block_position)
             list.pop(index)
-
             dic[block_position]=dic[block_position] + 1
 
             #find the right place to move to, based on frequence in dic
@@ -66,3 +72,4 @@ def LFU_cache_trace(parameter_prefix, dir_path, cache_size):
 
     f_origin.close()
     f_filtered.close()
+    return hit_count/request_count

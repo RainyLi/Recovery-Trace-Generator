@@ -6,24 +6,26 @@
 import os
 import sys
 
-def FBF_kick_out(list3,list2, list1):
-    if list1: # if list1 is not blank
-        #print("kick out", list1[0], "from list1")
-        list1.pop(0)
-    elif list2:
-        #print("kick out", list2[0], "from list2")
-        list2.pop(0)
-    elif list3:
-        #print("kick out", list3[0], "from list3")
-        list3.pop(0)
-    else:
-        return -1 #failed, nothing to be kicked out
-    return (list3, list2, list1) #succeed
+
 
 def FBF_cache_trace(parameter_prefix, dir_path, cache_size):
     list3 = []
     list2 = []
     list1 = []
+    request_count=0
+    hit_count=0
+
+
+    def FBF_kick_out():
+        if list1:  # if list1 is not blank
+            # print("kick out", list1[0], "from list1")
+            list1.pop(0)
+        elif list2:
+            # print("kick out", list2[0], "from list2")
+            list2.pop(0)
+        elif list3:
+            # print("kick out", list3[0], "from list3")
+            list3.pop(0)
 
     cache_space = cache_size
     f_origin_name = parameter_prefix+ "_origin.trace"
@@ -55,6 +57,7 @@ def FBF_cache_trace(parameter_prefix, dir_path, cache_size):
     # generate trace for disks
     f_origin.seek(0, 0)  # set pointer to start
     for line in f_origin.readlines():
+        request_count=request_count+1
         line_info = line.split()
 
         device_number = line_info[1]
@@ -64,12 +67,27 @@ def FBF_cache_trace(parameter_prefix, dir_path, cache_size):
         block_priority = dic[block_position]
         dic[block_position] = dic[block_position] - 1
 
-        if block_priority == 3:  # must not be in cache
+        if block_priority >= 3:
+            # block_priority might be 4 or more, exp: adjuster of star code
+            # shall be kept in list 3 till reference only left 2 times
+            if block_position in list3:
+                #print(str(block_position) + "\n")
+                hit_count=hit_count+1
+                if dic[block_position]>=2:
+                    index = list3.index(block_position)
+                    list3.pop(index)
+                    list3.append(block_position)
+                else:
+                    index = list3.index(block_position)
+                    list3.pop(index)
+                    list2.append(block_position)
+                # print("degrade", j, "from List3 to List2")
+                continue
             if cache_space > 0:
                 # print("fetch a free block")
                 cache_space = cache_space - 1
             else:
-                FBF_kick_out(list3, list2, list1)
+                FBF_kick_out()
 
             list3.append(block_position)
             # write trace
@@ -79,6 +97,8 @@ def FBF_cache_trace(parameter_prefix, dir_path, cache_size):
 
         if block_priority == 2:
             if block_position in list3:
+                #print(str(block_position) + "\n")
+                hit_count=hit_count+1
                 index = list3.index(block_position)
                 list3.pop(index)
                 list2.append(block_position)
@@ -88,7 +108,7 @@ def FBF_cache_trace(parameter_prefix, dir_path, cache_size):
                 # print("fetch a free block")
                 cache_space = cache_space - 1
             else:
-                FBF_kick_out(list3, list2, list1)
+                FBF_kick_out()
 
             # write trace
             FBF_trace = '0 ' + str(device_number) + ' ' + str(block_number) + ' 1 1\n'
@@ -100,6 +120,8 @@ def FBF_cache_trace(parameter_prefix, dir_path, cache_size):
 
         if block_priority == 1:
             if block_position in list2:
+                hit_count=hit_count+1
+                #print(str(block_position) + "\n")
                 index = list2.index(block_position)
                 list2.pop(index)
                 list1.append(block_position)
@@ -109,7 +131,7 @@ def FBF_cache_trace(parameter_prefix, dir_path, cache_size):
                 # print("fetch a free block")
                 cache_space = cache_space - 1
             else:
-                FBF_kick_out(list3, list2, list1)
+                FBF_kick_out()
 
             # write to filter
             FBF_trace = '0 ' + str(device_number) + ' ' + str(block_number) + ' 1 1\n'
@@ -120,3 +142,4 @@ def FBF_cache_trace(parameter_prefix, dir_path, cache_size):
 
     f_origin.close()
     f_FBF.close()
+    return hit_count/request_count

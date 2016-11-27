@@ -10,9 +10,11 @@ def ARC_cache_trace(parameter_prefix, dir_path, cache_size):
     B1 = []
     T2 = []
     B2 = []
+    request_count=0
+    hit_count=0
     p=0
 
-    # defined outside the loop in order to be referenced by Replace(p)
+    # defined outside the loop in order to bde referenced by Replace(p)
     block_position = (0,0)
 
     c=cache_size
@@ -40,6 +42,7 @@ def ARC_cache_trace(parameter_prefix, dir_path, cache_size):
 
     # generate trace for disks
     for line in f_origin.readlines():
+        request_count=request_count+1
         line_info = line.split()
 
         device_number = line_info[1]
@@ -48,15 +51,19 @@ def ARC_cache_trace(parameter_prefix, dir_path, cache_size):
 
         #case1
         if block_position in T1:# cache hit
+            hit_count=hit_count+1
             index=T1.index(block_position)
             T1.pop(index)
             T2.append(block_position)
             continue
         elif block_position in T2: #cache hit
+            hit_count=hit_count+1
             index = T2.index(block_position)
             T2.pop(index)
             T2.append(block_position)
             continue
+
+        #case2
         elif block_position in B1: #cache miss
             p=min(c, p+max(len(B2)/len(B1),1))
             Replace(p)
@@ -71,6 +78,8 @@ def ARC_cache_trace(parameter_prefix, dir_path, cache_size):
             B2.pop(index)
             T2.append(block_position)
             #disk request
+
+        #case3
         else: # cache and ghost both miss
             lenL1 = len(T1) + len(B1)
             lenL2 = len(T2) + len(B2)
@@ -93,3 +102,4 @@ def ARC_cache_trace(parameter_prefix, dir_path, cache_size):
 
     f_origin.close()
     f_filtered.close()
+    return hit_count/request_count
