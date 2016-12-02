@@ -142,4 +142,4 @@ def FBF_cache_trace(parameter_prefix, dir_path, cache_size):
 
     f_origin.close()
     f_FBF.close()
-    return hit_count/request_count
+    return (hit_count/request_count, request_count-hit_count)

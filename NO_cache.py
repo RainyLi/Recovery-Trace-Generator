@@ -5,6 +5,7 @@ from tip import *
 from hdd1 import *
 
 def origin_trace(recovery_sequence, code, prime, error_disk, stripe_number, dir_path):
+    request_count=0
     if code==1:
         parameter_prefix = "star"
     elif code==2:
@@ -30,9 +31,10 @@ def origin_trace(recovery_sequence, code, prime, error_disk, stripe_number, dir_
 
                 origin_trace = '0 ' + str(device_number) + ' ' + str(block_number) + ' 1 1\n'
                 f_origin.write(origin_trace)
+                request_count=request_count+1
 
     f_origin.close()
-    return parameter_prefix
+    return (parameter_prefix,request_count)
 
 def NO_cache_trace(code, prime, error_disk, stripe_number, dir_path):
     #generate recovery scheme on stripe
